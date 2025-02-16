@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Google Calendar Events</title>
+    <link href="/output.css" rel="stylesheet" />
+    <style>
+      .color-circle {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 8px;
+        cursor: pointer;
+      }
+    </style>
+    <script>
+      function getColor(colorId) {
+        const colors = {
+          1: "#a4bdfc",
+          2: "#88b253",
+          3: "#832da4",
+          4: "#d88177",
+          5: "#fbd75b",
+          6: "#e25d32",
+          7: "#46d6db",
+          8: "#e1e1e1",
+          9: "#5484ed",
+          10: "#51b749",
+          11: "#c3291c",
+        };
+        return colors[colorId] || "#ffffff"; // Default to white if colorId is not found
+      }
+    </script>
+  </head>
+  <body class="bg-gray-100 min-h-screen flex flex-col items-center p-6">
+    <div class="max-w-3xl w-full bg-white shadow-lg rounded-lg p-6">
+      <h1 class="text-2xl font-bold text-gray-800 mb-6">
+        Your Upcoming Events
+      </h1>
+
+      <% if (events.length > 0) { %>
+      <table class="min-w-full bg-white">
+        <thead>
+          <tr>
+            <th
+              class="py-2 px-4 border-b-2 border-gray-200 bg-gray-100 text-left text-sm leading-4 text-gray-600 uppercase tracking-wider"
+            >
+              Event
+            </th>
+            <th
+              class="py-2 px-4 border-b-2 border-gray-200 bg-gray-100 text-left text-sm leading-4 text-gray-600 uppercase tracking-wider"
+            >
+              Start Time
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <% events.forEach(event => { %>
+          <tr
+            style="background-color: <%= getColor(event.colorId) %>"
+            data-event="<%= JSON.stringify(event) %>"
+            onclick="handleRowClick(this)"
+          >
+            <td class="py-2 px-4 border-b border-gray-200">
+              <h2 class="text-lg font-semibold text-slate-800">
+                <%= event.summary %>
+              </h2>
+            </td>
+            <td class="py-2 px-4 border-b border-gray-200">
+              <p class="text-sm text-gray-600">
+                <% if (event.start.date) { %> <%= new
+                Date(event.start.date).toLocaleDateString() %> <% } else { %>
+                All day event <% } %>
+              </p>
+            </td>
+          </tr>
+          <% }); %>
+        </tbody>
+      </table>
+      <% } else { %>
+      <p class="text-gray-600">No upcoming events found.</p>
+      <% } %>
+    </div>
+
+    <!-- Modal structure -->
+    <div
+      id="eventModal"
+      class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-20 hidden"
+    >
+      <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-bold">Edit Event</h2>
+          <button
+            class="text-gray-500 hover:text-gray-700"
+            onclick="closeModal()"
+          >
+            &times;
+          </button>
+        </div>
+        <form id="eventForm">
+          <div class="mb-4">
+            <label
+              for="eventSummary"
+              class="block text-sm font-medium text-gray-700"
+              >Summary:</label
+            >
+            <input
+              type="text"
+              id="eventSummary"
+              name="summary"
+              class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          <div class="mb-0.5 flex gap-1.5">
+            <input
+              type="checkbox"
+              id="allDay"
+              name="allDay"
+              onclick="toggleAllDay(this)"
+            />
+            <label for="allDay" class="text-sm font-medium text-gray-700"
+              >All Day Event</label
+            >
+          </div>
+          <div class="mb-1">
+            <label
+              for="eventStart"
+              class="block text-sm font-medium text-gray-700"
+              >Start Time</label
+            >
+            <input
+              type="datetime-local"
+              id="eventStart"
+              name="start"
+              class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          <div class="mb-4">
+            <label
+              for="eventEnd"
+              class="block text-sm font-medium text-gray-700"
+              >End Time</label
+            >
+            <input
+              type="datetime-local"
+              id="eventEnd"
+              name="end"
+              class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          <div class="mb-4 relative">
+            <label
+              for="eventColor"
+              class="block text-sm font-medium text-gray-700"
+              >Event Color</label
+            >
+            <div class="table">
+              <div
+                class="flex items-center border border-gray-300 rounded-md p-2"
+              >
+                <div
+                  id="selectedColor"
+                  class="w-5 h-5 rounded-full cursor-pointer mr-2"
+                  style="background-color: #000000"
+                  onclick="toggleColorDropdown()"
+                ></div>
+                <span
+                  class="text-sm font-medium text-gray-700 cursor-pointer"
+                  onclick="toggleColorDropdown()"
+                  >▼</span
+                >
+              </div>
+            </div>
+
+            <div class="table">
+              <div
+                id="colorDropdown"
+                class="grid grid-cols-2 p-2 gap-x-3.5 gap-y-2 mt-1 border border-gray-300 rounded-md hidden"
+              >
+                <script>
+                  const predefinedColors = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+                  predefinedColors.forEach((colorId) => {
+                    const colorDiv = document.createElement("div");
+                    console.log("colorId", colorId, getColor(colorId));
+                    colorDiv.style.backgroundColor = getColor(colorId);
+                    colorDiv.className =
+                      "w-4 h-4 rounded-full cursor-pointer hover:scale-125";
+                    colorDiv.onclick = () => selectColor(colorId);
+                    document
+                      .getElementById("colorDropdown")
+                      .appendChild(colorDiv);
+                  });
+                </script>
+              </div>
+            </div>
+
+            <input type="hidden" id="eventColor" name="color" value="#000000" />
+          </div>
+          <div class="flex justify-end">
+            <button
+              type="button"
+              onclick="saveEvent()"
+              class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+            >
+              Save
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      let selectedEvent = null;
+
+      function handleRowClick(row) {
+        selectedEvent = JSON.parse(row.getAttribute("data-event"));
+        console.log("handleRowClick()", selectedEvent);
+        document.getElementById("eventSummary").value = selectedEvent.summary;
+        const eventStart = document.getElementById("eventStart");
+        const eventEnd = document.getElementById("eventEnd");
+        const eventColor = document.getElementById("eventColor");
+        const selectedColor = document.getElementById("selectedColor");
+        const allDayCheckbox = document.getElementById("allDay");
+
+        if (selectedEvent.start.date) {
+          eventStart.type = "date";
+          eventStart.value = selectedEvent.start.date;
+          eventEnd.type = "date";
+          eventEnd.value = selectedEvent.end.date;
+          allDayCheckbox.checked = true;
+          eventEnd.parentElement.style.display = "none";
+        } else {
+          eventStart.type = "datetime-local";
+          eventStart.value = formatDateTimeLocal(selectedEvent.start.dateTime);
+          eventEnd.type = "datetime-local";
+          eventEnd.value = formatDateTimeLocal(selectedEvent.end.dateTime);
+          allDayCheckbox.checked = false;
+          eventEnd.parentElement.style.display = "block";
+        }
+
+        if (selectedEvent.colorId) {
+          const color = getColor(selectedEvent.colorId);
+          eventColor.value = color;
+          selectedColor.style.backgroundColor = color;
+        } else {
+          eventColor.value = "#000000"; // Default color
+          selectedColor.style.backgroundColor = "#000000";
+        }
+
+        document.getElementById("eventModal").classList.remove("hidden");
+      }
+
+      function formatDateTimeLocal(dateTime) {
+        const date = new Date(dateTime);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        const hours = String(date.getHours()).padStart(2, "0");
+        const minutes = String(date.getMinutes()).padStart(2, "0");
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+      }
+
+      function toggleAllDay(checkbox) {
+        console.log("toggleAllDay()", checkbox.checked);
+        console.log("selectedEvent", selectedEvent);
+        const eventStart = document.getElementById("eventStart");
+        const eventEnd = document.getElementById("eventEnd");
+        if (checkbox.checked) {
+          eventStart.type = "date";
+          if (selectedEvent.start.date) {
+            eventStart.value = selectedEvent.start.date;
+          } else {
+            eventStart.value = selectedEvent.start.dateTime.split("T")[0];
+          }
+          eventEnd.parentElement.style.display = "none";
+        } else {
+          eventStart.type = "datetime-local";
+          if (selectedEvent.start.date) {
+            eventStart.value = selectedEvent.start.date;
+          } else {
+            eventStart.value = formatDateTimeLocal(
+              selectedEvent.start.dateTime
+            );
+          }
+          eventEnd.parentElement.style.display = "block";
+        }
+      }
+
+      function toggleColorDropdown() {
+        const colorDropdown = document.getElementById("colorDropdown");
+        colorDropdown.classList.toggle("hidden");
+      }
+
+      function selectColor(colorId) {
+        const color = getColor(colorId);
+        const eventColor = document.getElementById("eventColor");
+        const selectedColor = document.getElementById("selectedColor");
+        eventColor.value = color;
+        selectedColor.style.backgroundColor = color;
+        toggleColorDropdown();
+      }
+
+      function closeModal() {
+        document.getElementById("eventModal").classList.add("hidden");
+      }
+
+      async function saveEvent() {
+        console.log("saveEvent()", selectedEvent.id);
+        const eventId = selectedEvent.id;
+        const summary = document.getElementById("eventSummary").value;
+        const start = document.getElementById("eventStart").value;
+        const end = document.getElementById("eventEnd").value;
+        const allDay = document.getElementById("allDay").checked;
+        const color = document.getElementById("eventColor").value;
+
+        const response = await fetch("/events/update", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ eventId, summary, start, end, allDay, color }),
+        });
+
+        if (response.ok) {
+          console.log("Event updated successfully");
+          closeModal();
+          location.reload(); // Reload the page to reflect the changes
+        } else {
+          console.error("Failed to update event");
+          alert("Failed to update event");
+        }
+      }
+
+      // Close the modal when the user clicks outside of it
+      window.onclick = function (event) {
+        const modal = document.getElementById("eventModal");
+        if (event.target == modal) {
+          modal.classList.add("hidden");
+        }
+      };
+    </script>
+  </body>
+</html>

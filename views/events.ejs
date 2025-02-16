@@ -64,12 +64,10 @@
             onclick="handleRowClick(this)"
           >
             <td class="py-2 px-4 border-b border-gray-200">
-              <h2 class="text-lg font-semibold text-slate-800">
-                <%= event.summary %>
-              </h2>
+              <h1 class="text-md text-slate-800"><%= event.summary %></h1>
             </td>
             <td class="py-2 px-4 border-b border-gray-200">
-              <p class="text-sm text-gray-600">
+              <p class="text-sm text-gray-800">
                 <% if (event.start.date) { %> <%= new
                 Date(event.start.date).toLocaleDateString() %> <% } else { %>
                 All day event <% } %>

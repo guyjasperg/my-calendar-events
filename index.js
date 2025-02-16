@@ -12,6 +12,9 @@ dotenv.config();
 const app = express();
 const port = 3000;
 
+// Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, "public"))); // Use path.join to properly create the path.
+
 // Middleware to parse JSON bodies
 app.use(bodyParser.json());
 
@@ -44,7 +47,9 @@ app.get("/auth/google/callback", async (req, res) => {
     fs.writeFileSync("./tokens.json", JSON.stringify(tokens));
 
     // res.send("Authentication successful! You can now manage your calendar.");
-    res.redirect("/events"); // Redirect to the events page
+    // res.redirect("/events"); // Redirect to the events page
+    // Redirect to the login success page
+    res.redirect("/login-success.html");
   } catch (error) {
     console.error("Error retrieving access token", error);
     res.status(500).send("Authentication failed");
@@ -131,9 +136,6 @@ app.post("/events/update", async (req, res) => {
     res.status(500).send("Failed to update event");
   }
 });
-
-// Serve static files from the 'public' directory
-app.use(express.static(path.join(__dirname, "public"))); // Use path.join to properly create the path.
 
 // Set EJS as the view engine
 app.set("view engine", "ejs");
